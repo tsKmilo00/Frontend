@@ -13,6 +13,8 @@ interface NotificationsContextType {
   markAsRead: (notificationId: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   addLocalNotification: (notification: Notification) => void;
+  approveRoleChange: (requestId: string, notificationId: string) => Promise<void>;
+  rejectRoleChange: (requestId: string, notificationId: string) => Promise<void>;
 }
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
@@ -137,6 +139,24 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
     updateLocalState();
   }, [updateLocalState]);
 
+  const approveRoleChange = async (requestId: string, notificationId: string) => {
+    try {
+      await apiService.approveRoleChange(requestId, notificationId);
+      updateLocalState();
+    } catch (err: any) {
+      setError(err.message || 'Error al aprobar cambio de rol');
+    }
+  };
+
+  const rejectRoleChange = async (requestId: string, notificationId: string) => {
+    try {
+      await apiService.rejectRoleChange(requestId, notificationId);
+      updateLocalState();
+    } catch (err: any) {
+      setError(err.message || 'Error al rechazar cambio de rol');
+    }
+  };
+
   const value = {
     notifications,
     unreadCount,
@@ -145,7 +165,9 @@ export const NotificationsProvider = ({ children }: { children: React.ReactNode 
     fetchNotifications,
     markAsRead,
     markAllAsRead,
-    addLocalNotification
+    addLocalNotification,
+    approveRoleChange,
+    rejectRoleChange
   };
 
   return React.createElement(NotificationsContext.Provider, { value }, children);

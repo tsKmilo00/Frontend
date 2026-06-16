@@ -31,6 +31,21 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="container py-4">
+      {/* Admin Alert Link */}
+      {user.rol === 'administrador' && (
+        <div className="alert alert-danger border-0 shadow-sm d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 p-4 text-start gap-3" style={{ borderRadius: '15px' }}>
+          <div>
+            <h5 className="alert-heading fw-bold mb-1">🛡️ Acceso de Administrador Detectado</h5>
+            <p className="mb-0 small text-secondary" style={{ maxWidth: '650px' }}>
+              Posees permisos globales para gestionar la plataforma Sanos y Salvos. Puedes acceder al panel restringido para revisar métricas, solicitudes de cambio de rol y reportes georreferenciados.
+            </p>
+          </div>
+          <Link to="/admin" className="btn btn-danger text-white fw-bold px-4 py-2 text-nowrap ms-sm-auto" style={{ borderRadius: '8px', fontSize: '0.9rem' }}>
+            Ir a Panel Privado Admin
+          </Link>
+        </div>
+      )}
+
       {/* Welcome Banner */}
       <div className="bg-gradient-primary text-white rounded-4 p-4 p-md-5 mb-4 shadow-sm relative overflow-hidden">
         <div className="row align-items-center">

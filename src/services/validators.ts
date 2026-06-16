@@ -11,9 +11,15 @@ export const validatePassword = (password: string): boolean => {
   return true;
 };
 
+export const validateName = (name: string): boolean => {
+  // Only letters and spaces (including Spanish letters with accents/ñ)
+  const nameRegex = /^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s]+$/;
+  return nameRegex.test(name.trim());
+};
+
 export const validatePhone = (phone: string): boolean => {
-  // basic validation (at least 7 numbers)
-  const phoneRegex = /^\+?[\d\s-]{7,15}$/;
+  // must be exactly 9 digits
+  const phoneRegex = /^\d{9}$/;
   return phoneRegex.test(phone.trim());
 };
 

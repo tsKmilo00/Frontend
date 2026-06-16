@@ -60,6 +60,13 @@ export const Navigation: React.FC = () => {
                 Solicitar Rol
               </NavLink>
             </li>
+            {user.rol === 'administrador' && (
+              <li className="nav-item">
+                <NavLink className={({ isActive }) => `nav-link ${isActive ? 'active fw-semibold' : ''}`} to="/admin" onClick={handleCloseNav}>
+                  Panel Admin 🛡️
+                </NavLink>
+              </li>
+            )}
             <li className="nav-item">
               <NavLink className={({ isActive }) => `nav-link ${isActive ? 'active fw-semibold' : ''}`} to="/reports" onClick={handleCloseNav}>
                 Reportes
@@ -110,6 +117,13 @@ export const Navigation: React.FC = () => {
                     👤 Mi Perfil
                   </Link>
                 </li>
+                {user.rol === 'administrador' && (
+                  <li>
+                    <Link className="dropdown-item py-2 fw-semibold text-danger" to="/admin" onClick={handleCloseNav}>
+                      🛡️ Panel Admin
+                    </Link>
+                  </li>
+                )}
                 <li>
                   <Link className="dropdown-item py-2" to="/notifications" onClick={handleCloseNav}>
                     🔔 Notificaciones

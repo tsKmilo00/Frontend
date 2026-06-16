@@ -8,7 +8,7 @@ import { validateUrl } from '../services/validators';
 
 export const ManageRole: React.FC = () => {
   const { user, reloadUser } = useAuth();
-  const [selectedRole, setSelectedRole] = useState<'usuario' | 'municipalidad' | 'refugio' | 'veterinaria' | 'administrador'>('municipalidad');
+  const [selectedRole, setSelectedRole] = useState<'usuario' | 'municipalidad' | 'refugio' | 'veterinaria'>('municipalidad');
   const [documentUrl, setDocumentUrl] = useState('');
   const [urlError, setUrlError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +42,7 @@ export const ManageRole: React.FC = () => {
       });
       setStatusMessage({
         type: 'success',
-        text: `¡Solicitud de cambio de rol procesada con éxito! Tu nuevo rol asignado es "${selectedRole}".`
+        text: `¡Solicitud de cambio de rol enviada con éxito! Tu solicitud para el rol "${selectedRole}" está pendiente de aprobación por el administrador.`
       });
       setDocumentUrl('');
       await reloadUser();
@@ -105,7 +105,6 @@ export const ManageRole: React.FC = () => {
                     <option value="municipalidad">Municipalidad</option>
                     <option value="refugio">Refugio</option>
                     <option value="veterinaria">Veterinaria</option>
-                    <option value="administrador">Administrador</option>
                   </select>
                   <div className="form-text small text-muted mt-1">
                     Tu rol actual es: <strong className="text-uppercase text-primary">{user.rol}</strong>

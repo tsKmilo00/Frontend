@@ -13,6 +13,7 @@ import UserProfile from './pages/UserProfile';
 import ManageRole from './pages/ManageRole';
 import Notifications from './pages/Notifications';
 import Reports from './pages/Reports';
+import AdminPanel from './pages/AdminPanel';
 
 const AppContent: React.FC = () => {
   return (
@@ -46,6 +47,14 @@ const AppContent: React.FC = () => {
             element={
               <ProtectedRoute>
                 <ManageRole />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute adminOnly>
+                <AdminPanel />
               </ProtectedRoute>
             }
           />

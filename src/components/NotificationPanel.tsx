@@ -3,7 +3,7 @@ import { useNotifications } from '../hooks/useNotifications';
 import Spinner from './Spinner';
 
 export const NotificationPanel: React.FC = () => {
-  const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, approveRoleChange, rejectRoleChange } = useNotifications();
 
   return (
     <div className="card border-0 shadow-sm" style={{ borderRadius: '15px' }}>
@@ -73,6 +73,43 @@ export const NotificationPanel: React.FC = () => {
                   <p className="mb-1 text-muted small" style={{ lineHeight: '1.4', fontSize: '0.85rem' }}>
                     {notif.descripcion}
                   </p>
+                  {notif.datos?.tipo === 'role_request' && (
+                    <div className="my-2 d-flex flex-wrap align-items-center gap-2">
+                      {notif.datos.estado === 'pendiente' ? (
+                        <>
+                          <button
+                            onClick={() => approveRoleChange && approveRoleChange(notif.datos?.requestId as string, notif.id)}
+                            className="btn btn-sm btn-success fw-semibold px-3 py-1"
+                            style={{ borderRadius: '6px', fontSize: '0.8rem' }}
+                          >
+                            Aceptar
+                          </button>
+                          <button
+                            onClick={() => rejectRoleChange && rejectRoleChange(notif.datos?.requestId as string, notif.id)}
+                            className="btn btn-sm btn-danger fw-semibold px-3 py-1"
+                            style={{ borderRadius: '6px', fontSize: '0.8rem' }}
+                          >
+                            Rechazar
+                          </button>
+                        </>
+                      ) : (
+                        <span className={`badge bg-${notif.datos.estado === 'aprobado' ? 'success' : 'danger'} text-uppercase`} style={{ fontSize: '0.75rem', padding: '0.4em 0.8em', borderRadius: '4px' }}>
+                          {notif.datos.estado === 'aprobado' ? 'Aprobada' : 'Rechazada'}
+                        </span>
+                      )}
+                      {!!notif.datos?.documentoValidacion && (
+                        <a
+                          href={notif.datos.documentoValidacion as string}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-sm btn-outline-secondary px-3 py-1 fw-semibold d-flex align-items-center gap-1"
+                          style={{ borderRadius: '6px', fontSize: '0.8rem' }}
+                        >
+                          📄 Ver Documento
+                        </a>
+                      )}
+                    </div>
+                  )}
                   <div className="d-flex align-items-center gap-3 mt-2">
                     {!notif.leida && (
                       <button 

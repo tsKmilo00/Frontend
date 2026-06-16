@@ -70,20 +70,44 @@ const MOCK_REPORTS_KEY = 'mock_reports';
 const MOCK_NOTIFICATIONS_KEY = 'mock_notifications';
 
 const initMockDb = () => {
-  if (!localStorage.getItem(MOCK_USERS_KEY)) {
-    const defaultUser: User = {
+  let users = [];
+  const rawUsers = localStorage.getItem(MOCK_USERS_KEY);
+  if (rawUsers) {
+    try {
+      users = JSON.parse(rawUsers);
+    } catch {
+      users = [];
+    }
+  }
+
+  // Ensure default demo user exists
+  if (!users.some((u: any) => u.correo === 'user@demo.com')) {
+    users.push({
       id: 'usr_1',
       nombre: 'Usuario Demo',
       correo: 'user@demo.com',
       telefono: '123456789',
       rol: 'usuario',
       createdAt: new Date().toISOString(),
-    };
-    // Default password for demo: Demo123
-    localStorage.setItem(MOCK_USERS_KEY, JSON.stringify([
-      { ...defaultUser, contrasena: 'Demo123' }
-    ]));
+      contrasena: 'Demo123'
+    });
   }
+
+  // Ensure admin user exists
+  if (!users.some((u: any) => u.correo === 'admin@sanosysalvos.cl')) {
+    users.push({
+      id: 'usr_admin',
+      nombre: 'Administrador Sanos y Salvos',
+      correo: 'admin@sanosysalvos.cl',
+      telefono: '999999999',
+      rol: 'administrador',
+      createdAt: new Date().toISOString(),
+      contrasena: 'admin123'
+    });
+  }
+
+  localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users));
+
   if (!localStorage.getItem(MOCK_REPORTS_KEY)) {
     localStorage.setItem(MOCK_REPORTS_KEY, JSON.stringify([]));
   }
@@ -103,7 +127,7 @@ const initMockDb = () => {
         id: 'not_2',
         usuarioId: 'usr_1',
         titulo: 'Perfil Incompleto',
-        descripcion: 'Puedes solicitar un cambio de rol a moderador o administrador subiendo tu documentación.',
+        descripcion: 'Puedes solicitar un cambio de rol subiendo tu documentación.',
         tipo: 'info',
         leida: false,
         createdAt: new Date(Date.now() - 3600000).toISOString(),
@@ -239,16 +263,25 @@ export const apiService = {
       if (isNetworkError(err)) {
         // Mock login logic
         const users = JSON.parse(localStorage.getItem(MOCK_USERS_KEY) || '[]');
+        const userExists = users.find((u: any) => u.correo === data.correo);
+        if (!userExists) {
+          throw new Error('Usuario no registrado');
+        }
         const user = users.find((u: any) => u.correo === data.correo && u.contrasena === data.contrasena);
         if (!user) {
-          throw new Error('Credenciales incorrectas');
+          throw new Error('Contraseña incorrecta');
         }
         const { contrasena, ...safeUser } = user;
         const token = generateFakeJwt(safeUser);
         return { token, user: safeUser };
       }
-      if (err.response && (err.response.status === 401 || err.response.status === 400)) {
-        throw new Error('Credenciales incorrectas');
+      if (err.response) {
+        if (err.response.status === 404 || (err.response.data && err.response.data.message && err.response.data.message.includes('no registrado'))) {
+          throw new Error('Usuario no registrado');
+        }
+        if (err.response.status === 401 || err.response.status === 400) {
+          throw new Error('Contraseña incorrecta');
+        }
       }
       throw new Error(err.response?.data?.message || 'Error en el servidor al iniciar sesión');
     }
@@ -289,6 +322,19 @@ export const apiService = {
     }
   },
 
+  async getAllUsers(): Promise<User[]> {
+    try {
+      const res = await api.get<User[]>('/usuarios');
+      return res.data;
+    } catch (err: any) {
+      if (isNetworkError(err)) {
+        const users = JSON.parse(localStorage.getItem(MOCK_USERS_KEY) || '[]');
+        return users.map(({ contrasena, ...safeUser }: any) => safeUser as User);
+      }
+      throw new Error(err.response?.data?.message || 'Error al obtener usuarios');
+    }
+  },
+
   async requestRoleChange(data: { rol: 'usuario' | 'municipalidad' | 'refugio' | 'veterinaria' | 'administrador'; documentoValidacion: string }): Promise<User> {
     try {
       const res = await api.post<User>('/usuarios/solicitar-rol', data);
@@ -301,33 +347,159 @@ export const apiService = {
         const users = JSON.parse(localStorage.getItem(MOCK_USERS_KEY) || '[]');
         const index = users.findIndex((u: any) => u.id === currentUser.id);
         if (index !== -1) {
-          users[index].rol = data.rol;
-          users[index].documentoValidacion = data.documentoValidacion;
+          // Keep current role, save pending request details
+          users[index].solicitudRol = {
+            rol: data.rol,
+            documentoValidacion: data.documentoValidacion,
+            estado: 'pendiente',
+            fecha: new Date().toISOString()
+          };
           localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users));
 
-          // Generate notification
+          // Generate notifications
           const notifications = JSON.parse(localStorage.getItem(MOCK_NOTIFICATIONS_KEY) || '[]');
+          
+          // User notification
           notifications.push({
             id: 'not_' + Math.random().toString(36).substr(2, 9),
             usuarioId: currentUser.id,
-            titulo: 'Cambio de Rol Solicitado',
-            descripcion: `Se ha solicitado el rol de ${data.rol} mediante el documento: ${data.documentoValidacion}.`,
+            titulo: 'Solicitud de Cambio de Rol Enviada',
+            descripcion: `Tu solicitud para cambiar a rol "${data.rol}" ha sido enviada y está en espera de aprobación.`,
             tipo: 'info',
             leida: false,
             createdAt: new Date().toISOString(),
             sincronizado: false
           });
+
+          // Admin notification
+          notifications.push({
+            id: 'not_' + Math.random().toString(36).substr(2, 9),
+            usuarioId: 'usr_admin', // Admin user ID
+            titulo: 'Nueva Solicitud de Cambio de Rol',
+            descripcion: `El usuario ${currentUser.nombre} (${currentUser.correo}) ha solicitado cambiar su rol a "${data.rol}".`,
+            tipo: 'info',
+            leida: false,
+            createdAt: new Date().toISOString(),
+            sincronizado: false,
+            datos: {
+              tipo: 'role_request',
+              requestId: 'req_' + Math.random().toString(36).substr(2, 9),
+              usuarioId: currentUser.id,
+              usuarioNombre: currentUser.nombre,
+              usuarioCorreo: currentUser.correo,
+              rolSolicitado: data.rol,
+              documentoValidacion: data.documentoValidacion,
+              estado: 'pendiente'
+            }
+          });
           localStorage.setItem(MOCK_NOTIFICATIONS_KEY, JSON.stringify(notifications));
 
           const { contrasena, ...safeUser } = users[index];
-          // Refresh local token to include new role
-          const newToken = generateFakeJwt(safeUser);
-          this.setToken(newToken);
           return safeUser;
         }
         throw new Error('Usuario no encontrado');
       }
       throw new Error(err.response?.data?.message || 'Error al solicitar cambio de rol');
+    }
+  },
+
+  async approveRoleChange(requestId: string, notificationId: string): Promise<void> {
+    try {
+      await api.post(`/admin/aprobar-rol/${requestId}`);
+    } catch (err: any) {
+      if (isNetworkError(err)) {
+        const notifications = JSON.parse(localStorage.getItem(MOCK_NOTIFICATIONS_KEY) || '[]');
+        const notifIndex = notifications.findIndex((n: any) => n.id === notificationId);
+        if (notifIndex === -1) throw new Error('Notificación no encontrada');
+
+        const requestData = notifications[notifIndex].datos;
+        if (!requestData || requestData.estado !== 'pendiente') {
+          throw new Error('La solicitud no está pendiente');
+        }
+
+        // 1. Update request status in notification
+        requestData.estado = 'aprobado';
+        notifications[notifIndex].datos = requestData;
+        notifications[notifIndex].leida = true;
+        notifications[notifIndex].descripcion = `Aprobaste el cambio de rol a ${requestData.rolSolicitado} para ${requestData.usuarioNombre}.`;
+        
+        // 2. Update user's role in mock database
+        const users = JSON.parse(localStorage.getItem(MOCK_USERS_KEY) || '[]');
+        const userIndex = users.findIndex((u: any) => u.id === requestData.usuarioId);
+        if (userIndex !== -1) {
+          users[userIndex].rol = requestData.rolSolicitado;
+          users[userIndex].documentoValidacion = requestData.documentoValidacion;
+          if (users[userIndex].solicitudRol) {
+            users[userIndex].solicitudRol.estado = 'aprobado';
+          }
+          localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users));
+        }
+
+        // 3. Create notification for the user to inform them about approval
+        notifications.push({
+          id: 'not_' + Math.random().toString(36).substr(2, 9),
+          usuarioId: requestData.usuarioId,
+          titulo: 'Solicitud de Rol Aprobada',
+          descripcion: `Tu solicitud de cambio de rol a "${requestData.rolSolicitado}" ha sido aprobada por el administrador.`,
+          tipo: 'success',
+          leida: false,
+          createdAt: new Date().toISOString(),
+          sincronizado: false
+        });
+
+        localStorage.setItem(MOCK_NOTIFICATIONS_KEY, JSON.stringify(notifications));
+        return;
+      }
+      throw new Error(err.response?.data?.message || 'Error al aprobar cambio de rol');
+    }
+  },
+
+  async rejectRoleChange(requestId: string, notificationId: string): Promise<void> {
+    try {
+      await api.post(`/admin/rechazar-rol/${requestId}`);
+    } catch (err: any) {
+      if (isNetworkError(err)) {
+        const notifications = JSON.parse(localStorage.getItem(MOCK_NOTIFICATIONS_KEY) || '[]');
+        const notifIndex = notifications.findIndex((n: any) => n.id === notificationId);
+        if (notifIndex === -1) throw new Error('Notificación no encontrada');
+
+        const requestData = notifications[notifIndex].datos;
+        if (!requestData || requestData.estado !== 'pendiente') {
+          throw new Error('La solicitud no está pendiente');
+        }
+
+        // 1. Update request status in notification
+        requestData.estado = 'rechazado';
+        notifications[notifIndex].datos = requestData;
+        notifications[notifIndex].leida = true;
+        notifications[notifIndex].descripcion = `Rechazaste el cambio de rol a ${requestData.rolSolicitado} para ${requestData.usuarioNombre}.`;
+
+        // 2. Update request status in mock database user
+        const users = JSON.parse(localStorage.getItem(MOCK_USERS_KEY) || '[]');
+        const userIndex = users.findIndex((u: any) => u.id === requestData.usuarioId);
+        if (userIndex !== -1) {
+          if (users[userIndex].solicitudRol) {
+            users[userIndex].solicitudRol.estado = 'rechazado';
+          }
+          localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(users));
+        }
+
+        // 3. Create notification for the user to inform them about rejection
+        notifications.push({
+          id: 'not_' + Math.random().toString(36).substr(2, 9),
+          usuarioId: requestData.usuarioId,
+          titulo: 'Solicitud de Rol Rechazada',
+          descripcion: `Tu solicitud de cambio de rol a "${requestData.rolSolicitado}" ha sido rechazada por el administrador.`,
+          tipo: 'error',
+          leida: false,
+          createdAt: new Date().toISOString(),
+          sincronizado: false
+        });
+
+        localStorage.setItem(MOCK_NOTIFICATIONS_KEY, JSON.stringify(notifications));
+        return;
+      }
+      throw new Error(err.response?.data?.message || 'Error al rechazar cambio de rol');
     }
   },
 
@@ -453,6 +625,9 @@ export const apiService = {
         const currentUser = this.getUserFromToken();
         if (!currentUser) return [];
         const reports = JSON.parse(localStorage.getItem(MOCK_REPORTS_KEY) || '[]');
+        if (currentUser.rol === 'administrador') {
+          return reports;
+        }
         return reports.filter((r: any) => r.usuarioId === currentUser.id);
       }
       throw new Error(err.response?.data?.message || 'Error al obtener reportes');

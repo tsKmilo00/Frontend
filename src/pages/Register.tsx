@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import FormInput from '../components/FormInput';
 import Alert from '../components/Alert';
-import { validateEmail, validatePassword, validatePhone } from '../services/validators';
+import { validateEmail, validatePassword, validatePhone, validateName } from '../services/validators';
 
 export const Register: React.FC = () => {
   const { register, error, clearError, isAuthenticated } = useAuth();
@@ -12,11 +12,13 @@ export const Register: React.FC = () => {
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [telefono, setTelefono] = useState('');
 
   const [nameError, setNameError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -30,8 +32,12 @@ export const Register: React.FC = () => {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setNombre(val);
-    if (val.trim().length < 3) {
+    if (!val.trim()) {
+      setNameError('El nombre es requerido');
+    } else if (val.trim().length < 3) {
       setNameError('El nombre debe tener al menos 3 caracteres');
+    } else if (!validateName(val)) {
+      setNameError('El nombre no debe contener números ni símbolos');
     } else {
       setNameError(null);
     }
@@ -55,13 +61,32 @@ export const Register: React.FC = () => {
     } else {
       setPasswordError(null);
     }
+
+    if (confirmPassword && val !== confirmPassword) {
+      setConfirmPasswordError('Las contraseñas no coinciden');
+    } else {
+      setConfirmPasswordError(null);
+    }
+  };
+
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setConfirmPassword(val);
+    if (val !== password) {
+      setConfirmPasswordError('Las contraseñas no coinciden');
+    } else {
+      setConfirmPasswordError(null);
+    }
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
+    // Only allow numbers and max length of 9
+    const val = e.target.value.replace(/\D/g, '').slice(0, 9);
     setTelefono(val);
-    if (val && !validatePhone(val)) {
-      phoneError || setPhoneError('Formato de teléfono inválido (7 a 15 números)');
+    if (val.length === 0) {
+      setPhoneError('El número de teléfono es requerido');
+    } else if (val.length < 9) {
+      setPhoneError('El número de teléfono debe tener exactamente 9 dígitos');
     } else {
       setPhoneError(null);
     }
@@ -74,17 +99,28 @@ export const Register: React.FC = () => {
     if (!nombre || nombre.trim().length < 3) {
       setNameError('El nombre debe tener al menos 3 caracteres');
       hasError = true;
+    } else if (!validateName(nombre)) {
+      setNameError('El nombre no debe contener números ni símbolos');
+      hasError = true;
     }
+
     if (!validateEmail(email)) {
       setEmailError('Correo electrónico inválido');
       hasError = true;
     }
+
     if (!validatePassword(password)) {
       setPasswordError('Contraseña no cumple con los requisitos');
       hasError = true;
     }
+
+    if (password !== confirmPassword) {
+      setConfirmPasswordError('Las contraseñas no coinciden');
+      hasError = true;
+    }
+
     if (!validatePhone(telefono)) {
-      setPhoneError('Teléfono inválido');
+      setPhoneError('El número de teléfono debe tener exactamente 9 dígitos');
       hasError = true;
     }
 
@@ -161,9 +197,10 @@ export const Register: React.FC = () => {
             value={telefono}
             onChange={handlePhoneChange}
             error={phoneError}
-            placeholder="3001234567"
+            placeholder="912345678"
             required
             disabled={isSubmitting}
+            maxLength={9}
           />
 
           <FormInput
@@ -173,6 +210,18 @@ export const Register: React.FC = () => {
             value={password}
             onChange={handlePasswordChange}
             error={passwordError}
+            placeholder="••••••••"
+            required
+            disabled={isSubmitting}
+          />
+
+          <FormInput
+            label="Confirmar Contraseña"
+            type="password"
+            name="confirmarContrasena"
+            value={confirmPassword}
+            onChange={handleConfirmPasswordChange}
+            error={confirmPasswordError}
             placeholder="••••••••"
             required
             disabled={isSubmitting}
@@ -201,7 +250,19 @@ export const Register: React.FC = () => {
           <button
             type="submit"
             className="btn btn-primary bg-gradient-primary border-0 w-100 py-3 fw-semibold text-white d-flex align-items-center justify-content-center gap-2"
-            disabled={isSubmitting || !!nameError || !!emailError || !!passwordError || !!phoneError || !nombre || !email || !password || !telefono}
+            disabled={
+              isSubmitting ||
+              !!nameError ||
+              !!emailError ||
+              !!passwordError ||
+              !!confirmPasswordError ||
+              !!phoneError ||
+              !nombre ||
+              !email ||
+              !password ||
+              !confirmPassword ||
+              !telefono
+            }
             style={{ borderRadius: '10px', fontSize: '1.05rem' }}
           >
             {isSubmitting ? (

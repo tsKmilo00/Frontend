@@ -1,50 +1,29 @@
 import React from 'react';
 
-interface FormInputProps {
+interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
-  type: string;
-  name: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string | null;
-  placeholder?: string;
-  required?: boolean;
-  disabled?: boolean;
-  autoFocus?: boolean;
-  id?: string;
 }
 
 export const FormInput: React.FC<FormInputProps> = ({
   label,
-  type,
-  name,
-  value,
-  onChange,
   error,
-  placeholder,
-  required = false,
-  disabled = false,
-  autoFocus = false,
-  id
+  id,
+  className,
+  style,
+  ...props
 }) => {
-  const inputId = id || `input-${name}`;
+  const inputId = id || `input-${props.name}`;
   return (
     <div className="mb-3 text-start">
       <label htmlFor={inputId} className="form-label fw-semibold text-secondary small">
-        {label} {required && <span className="text-danger">*</span>}
+        {label} {props.required && <span className="text-danger">*</span>}
       </label>
       <input
-        type={type}
-        name={name}
         id={inputId}
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        autoFocus={autoFocus}
-        placeholder={placeholder}
-        required={required}
-        className={`form-control form-control-lg ${error ? 'is-invalid' : ''}`}
-        style={{ borderRadius: '8px' }}
+        className={`form-control form-control-lg ${error ? 'is-invalid' : ''} ${className || ''}`}
+        style={{ borderRadius: '8px', ...style }}
+        {...props}
       />
       {error && <div className="invalid-feedback text-start mt-1" style={{ fontSize: '0.85rem' }}>{error}</div>}
     </div>
