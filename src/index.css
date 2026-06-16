@@ -1,0 +1,178 @@
+:root {
+  --primary: #667eea;
+  --secondary: #764ba2;
+  --success: #198754;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --info: #0dcaf0;
+  
+  --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: #f8fafc;
+  color: #1e293b;
+  overflow-x: hidden;
+}
+
+/* Primary and Dark Gradients */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;
+}
+
+.bg-dark-gradient {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+}
+
+.bg-page-gradient {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+}
+
+.text-gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-light-gray {
+  background-color: #f8fafc !important;
+}
+
+/* Brand logo style */
+.brand-logo-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+}
+
+.brand-logo {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 12px rgba(102, 126, 234, 0.25);
+}
+
+.brand-logo-inner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid white;
+}
+
+/* Custom interactive lists */
+.bg-light-active {
+  background-color: rgba(102, 126, 234, 0.04) !important;
+  border-left: 3px solid var(--primary) !important;
+}
+
+/* Navigation items hover */
+.navbar-nav .nav-link {
+  transition: var(--transition-smooth);
+}
+.navbar-nav .nav-link:hover {
+  color: #f1f5f9 !important;
+  transform: translateY(-1px);
+}
+
+/* Card hover animation */
+.card-hover {
+  transition: var(--transition-smooth);
+}
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(30, 41, 59, 0.08) !important;
+}
+
+/* Buttons and styles */
+.btn {
+  transition: var(--transition-smooth);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  border: none;
+}
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(102, 126, 234, 0.35);
+}
+
+/* Inputs and controls focus */
+.form-control:focus, .form-select:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.2) !important;
+}
+
+/* Utilities */
+.transition-all {
+  transition: var(--transition-smooth);
+}
+
+/* Bounce animation */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+.animate-bounce {
+  animation: bounce 2s infinite;
+}
+
+/* Leaflet Container Overrides */
+.leaflet-container {
+  font-family: var(--font-family) !important;
+  border-radius: 8px;
+}
+
+/* Responsive Grid and utilities */
+@media (max-width: 576px) {
+  .auth-card {
+    padding: 1.5rem !important;
+  }
+  .display-5 {
+    font-size: 2rem !important;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-bounce {
+    animation: none !important;
+  }
+  .card-hover:hover {
+    transform: none !important;
+  }
+}
+
+/* Custom print media styles */
+@media print {
+  body {
+    background-color: #fff;
+    color: #000;
+  }
+  .navbar, footer, .btn, form, .leaflet-container {
+    display: none !important;
+  }
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+  }
+}
