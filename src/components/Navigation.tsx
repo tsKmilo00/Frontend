@@ -104,7 +104,7 @@ export const Navigation: React.FC = () => {
                 </div>
               </button>
               <ul 
-                className={`dropdown-menu dropdown-menu-end shadow border-0 mt-2 ${isDropdownOpen ? 'show' : ''}`} 
+                className={`dropdown-menu dropdown-menu-dark dropdown-menu-end shadow border-0 mt-2 ${isDropdownOpen ? 'show' : ''}`} 
                 style={{ 
                   position: isNavCollapsed ? 'absolute' : 'static', 
                   right: 0,

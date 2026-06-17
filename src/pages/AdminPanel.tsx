@@ -198,9 +198,9 @@ export const AdminPanel: React.FC = () => {
                   ))}
                 </MapContainer>
               </div>
-              <div className="mt-3 text-muted small d-flex justify-content-between align-items-center">
+              <div className="mt-3 text-muted small d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 text-center text-sm-start">
                 <span>Haga clic en los pines para ver detalles de los refugios, veterinarias e incidentes.</span>
-                <span className="fw-semibold text-primary">✔ Conexión Georreferenciada Estable</span>
+                <span className="fw-semibold text-primary text-nowrap">✔ Conexión Georreferenciada Estable</span>
               </div>
             </div>
           </div>
@@ -300,7 +300,7 @@ export const AdminPanel: React.FC = () => {
                         <span className="badge bg-warning text-dark text-uppercase" style={{ fontSize: '0.65rem' }}>Pendiente</span>
                       </div>
                       
-                      <div className="d-flex align-items-center gap-2 mt-3">
+                      <div className="d-flex flex-wrap align-items-center gap-2 mt-3">
                         <button
                           onClick={() => handleApprove(req.datos?.requestId as string, req.id)}
                           className="btn btn-sm btn-success fw-semibold px-3 py-1"
@@ -320,7 +320,7 @@ export const AdminPanel: React.FC = () => {
                             href={req.datos.documentoValidacion as string}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="btn btn-sm btn-outline-secondary px-3 py-1 fw-semibold d-flex align-items-center gap-1 ms-auto"
+                            className="btn btn-sm btn-outline-secondary px-3 py-1 fw-semibold d-flex align-items-center gap-1 ms-sm-auto"
                             style={{ borderRadius: '6px', fontSize: '0.8rem' }}
                           >
                             📄 Ver Documento

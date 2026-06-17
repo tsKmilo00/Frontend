@@ -174,9 +174,9 @@ export const Dashboard: React.FC = () => {
                 </Marker>
               </MapContainer>
             </div>
-            <div className="mt-3 text-muted small d-flex justify-content-between align-items-center">
+            <div className="mt-3 text-muted small d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 text-center text-sm-start">
               <span>Haga clic en los marcadores para ver detalles de las incidencias del mapa.</span>
-              <span className="fw-medium text-success">✔ Conectado a Leaflet Map Engine</span>
+              <span className="fw-medium text-success text-nowrap">✔ Conectado a Leaflet Map Engine</span>
             </div>
           </div>
         </div>
